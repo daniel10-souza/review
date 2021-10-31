@@ -1,0 +1,41 @@
+#Versao
+version: '3.9'
+#Volumes
+volumes:
+  db_volume-movies:
+  db_volume-review:
+#Redes  
+networks: 
+  produto_net:
+    driver: bridge
+
+
+services:
+  movies:
+    image: daniel10souza/review:v1
+    build:
+      dockerfile: ./Dockerfile
+      context: ./
+    ports:
+     - 8282:8282       
+    networks:
+     - produto_net
+    environment: 
+      MOVIE_SERVICE_URI: http://review:8282
+
+
+  database-review:
+    image: postgres:14.0
+#    ports:
+#     - 5432:5432
+    networks:
+     - produto_net
+    volumes:
+      - db_volume-review:/data/db
+    environment:
+      POSTGRES_USER: pguser
+      POSTGRES_PASSWORD: Pg@123;
+      POSTGRES_HOST: database-review
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: postgredb
+      ConnectionStrings__MyConnection: Host=postgredb;Database=pguser;Username=pguser;Password=Pg@123;

@@ -1,21 +1,12 @@
-#Dockerfile review
-# https://hub.docker.com/_/microsoft-dotnet
-FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
-WORKDIR /source
-
-# copy csproj and restore as distinct layers
-COPY *.sln .
-COPY Review.Web/*.csproj ./Review.Web/
-RUN dotnet restore
-
-# copy everything else and build app
-COPY Review.Web/. ./Review.Web/
-WORKDIR /source/Review.Web
-RUN dotnet publish -c release -o /app --no-restore
-
-# final stage/image
-FROM mcr.microsoft.com/dotnet/aspnet:5.0
+FROM mcr.microsoft.com/dotnet/sdk:5.0.103-alpine3.12 AS build-env
 WORKDIR /app
-COPY --from=build /app ./
-EXPOSE 8282:80
-ENTRYPOINT ["dotnet", "Review.Web.dll"]
+COPY Review.Web/*.csproj ./
+RUN dotnet restore 
+COPY . ./
+RUN dotnet publish ./Review.sln -c Release -o out
+
+FROM mcr.microsoft.com/dotnet/aspnet:5.0-alpine3.12
+WORKDIR /app
+COPY --from=build-env /app/out .
+EXPOSE 8282
+ENTRYPOINT [ "dotnet", "Review.Web.dll" ]
